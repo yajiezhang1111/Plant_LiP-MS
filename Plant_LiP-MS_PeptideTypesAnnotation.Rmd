@@ -1,0 +1,83 @@
+---
+title: "Plant_LiP-MS_PeptideTypesAnnotation"
+output: html_document
+date: "2026-10-28"
+---
+
+##Loading package----------------------------------------------------------
+
+We load the `Protti` package, along with additional packages for
+data manipulation and visualisation.
+
+```{r load_libraries}
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(protti)
+```
+
+
+##Input preparation--------------------------------------------------------
+# To read in your own data you can use read_protti()
+
+We load the output from FragPipe output combined_ion.tsv file.
+
+```{r import_data}
+evidence_TrP  <- read_protti(filename = "combined_ion_TrP.tsv")
+evidence_LiP  <- read_protti(filename = "combined_ion_LiP.tsv")
+```
+
+# Filter unique peptides
+
+```{r clean_up_data}
+evidence_TrP <- evidence_TrP %>% filter(evidence_TrP$mapped_genes == "")
+evidence_LiP <- evidence_LiP %>% filter(evidence_LiP$mapped_genes == "")
+```
+
+# Convert wide data format to long data format
+
+```{r convert_data_format}
+convert_TrP <- evidence_TrP %>% 
+  pivot_longer(cols = ends_with("intensity"),
+               names_to = "experiment_TrP",
+               values_to = "intensity")
+convert_LiP <- evidence_LiP %>% 
+  pivot_longer(cols = ends_with("intensity"),
+               names_to = "experiment_LiP",
+               values_to = "intensity")
+```
+
+# Extract last AA of peptides
+
+```{r extract_info_form_peptides}
+convert_TrP$last_aa <- substr(convert_TrP$peptide_sequence, nchar(convert_TrP$peptide_sequence), nchar(convert_TrP$peptide_sequence))
+convert_LiP$last_aa <- substr(convert_LiP$peptide_sequence, nchar(convert_LiP$peptide_sequence), nchar(convert_LiP$peptide_sequence))
+```
+
+# Assign peptide types
+
+```{r peptide_assignment}
+pep_TrP <- convert_TrP %>% 
+  assign_peptide_type(
+  aa_before = prev_aa,
+  last_aa = last_aa,
+  aa_after = next_aa
+)
+pep_LiP <- convert_LiP %>% 
+  assign_peptide_type(
+  aa_before = prev_aa,
+  last_aa = last_aa,
+  aa_after = next_aa
+)
+```
+
+
+## Output tables-----------------------------------------------------------
+
+```{r output_tables}
+write.table(pep_TrP, file = "pep_TrP.txt", sep = "\t",
+            row.names = FALSE)
+write.table(pep_LiP, file = "pep_LiP.txt", sep = "\t",
+            row.names = FALSE)
+```
