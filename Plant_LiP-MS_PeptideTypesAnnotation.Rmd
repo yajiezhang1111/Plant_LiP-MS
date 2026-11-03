@@ -73,7 +73,7 @@ pep_LiP <- convert_LiP %>%
 ```
 
 
-## Output tables-----------------------------------------------------------
+##Output tables-----------------------------------------------------------
 
 ```{r output_tables}
 write.table(pep_TrP, file = "pep_TrP.txt", sep = "\t",
