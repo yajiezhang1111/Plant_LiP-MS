@@ -61,3 +61,5 @@ writetable(header_table, "/.../Araport11_TAIR_headers.txt")
 
 ids <- unique(tair_id)
 writeLines(ids, "/.../Araport11_TAIR_IDs.txt")
+```
+We recommend pasting the extracted AGIs into UniProt’s ID Mapping tool rather than retrieving UniProtKB entries in R.
