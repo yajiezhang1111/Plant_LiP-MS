@@ -1,0 +1,63 @@
+---
+title: "Plant_LiP-MS_AGIExtraction"
+author: "Yajie Zhang"
+date: "2026-11-03"
+output: html_document
+---
+
+##Loading ARAPORT11--------------------------------------------------------
+
+Newest version of ARAPORT11 can be found in: https://www.arabidopsis.org/download/list?dir=Proteins%2FAraport11_protein_lists
+
+```{r load_FASTA}
+fasta_file <- "/.../Araport11_pep_20250411.fasta"
+```
+
+##Reading FASTA header-----------------------------------------------------
+
+```{r reading_header}
+fasta_lines <- readLines(fasta_file, warn = FALSE)
+headers <- fasta_lines[startsWith(fasta_lines, ">")]
+```
+
+##Extract transcript id----------------------------------------------------
+
+```{r extract_id}
+transcript_id <- regmatches(
+  headers,
+  regexpr("AT[1-5MC]G[0-9]{5}(\\.[0-9]+)?", headers)
+)
+```
+
+##Clean up non-extract header----------------------------------------------
+
+```{r clean_up}
+keep <- nzchar(transcript_id)
+headers <- headers[keep]
+transcript_id <- transcript_id[keep]
+
+if (length(transcript_id) == 0) {
+  stop("No TAIR IDs were extracted from the FASTA headers. Please check the file and header format.")
+}
+```
+
+##Extract Araport11 Entries with UniProt Matches---------------------------
+
+``` {r extract_entry}
+tair_id <- sub("\\.[0-9]+$", "", transcript_id)
+
+header_table <- data.frame(
+  fasta_header = headers,
+  transcript_id = transcript_id,
+  tair_id = tair_id,
+  stringsAsFactors = FALSE
+)
+```
+
+##Save list----------------------------------------------------------------
+
+```{r save_list}
+writetable(header_table, "/.../Araport11_TAIR_headers.txt")
+
+ids <- unique(tair_id)
+writeLines(ids, "/.../Araport11_TAIR_IDs.txt")
